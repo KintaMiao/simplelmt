@@ -85,7 +85,7 @@ const translateWithOpenAI = async (text: string, source: string, target: string)
 
   // 构建请求数据
   const data = {
-    model: "gpt-3.5-turbo",
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "user",
