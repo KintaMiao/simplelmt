@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
+import Translate from "@google-cloud/translate";
 
 // 定义响应数据类型
 type Data = {
@@ -47,10 +48,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   }
 }
 
-// 示例翻译函数：谷歌翻译
+// 修改后的谷歌翻译函数
 const translateWithGoogle = async (text: string, source: string, target: string): Promise<string> => {
-  // 实现谷歌翻译 API 调用
-  return `谷歌翻译结果: ${text}`; // 示例返回
+  const { Translate } = require('@google-cloud/translate').v2;
+
+  // 从环境变量中获取 Google Cloud 项目 ID 和凭据文件路径
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
+  const keyFilename = process.env.GOOGLE_CLOUD_KEYFILE;
+
+  if (!projectId || !keyFilename) {
+    throw new Error("Google Cloud 项目ID或密钥文件路径未配置");
+  }
+
+  const translate = new Translate({ projectId, keyFilename });
+
+  try {
+    const [translation] = await translate.translate(text, {
+      from: source,
+      to: target,
+    });
+    return translation;
+  } catch (error: any) {
+    console.error('谷歌翻译请求失败:', error);
+    throw new Error(`翻译失败: ${error.message}`);
+  }
 };
 
 // 修改后的 OpenAI 翻译函数
