@@ -6,9 +6,15 @@ import TranslationServices from "../components/TranslationServices";
 
 const Home = () => {
   return (
-    <Flex height="100vh" bg="gray.800" color="white" p={4}>
+    <Flex
+      height="100vh"
+      bg="gray.800"
+      color="white"
+      p={4}
+      direction={{ base: "column", md: "row" }}
+    >
       {/* 左侧输入区域 */}
-      <Box flex="3" mr={4}>
+      <Box flex="3" mr={{ md: 4 }} mb={{ base: 4, md: 0 }}>
         <TranslationInput />
       </Box>
 

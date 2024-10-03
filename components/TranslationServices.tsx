@@ -54,7 +54,13 @@ const TranslationServices = () => {
           )
         );
       })}
-      <Button onClick={onOpen} colorScheme="teal" size="sm">
+      <Button
+        onClick={onOpen}
+        colorScheme="teal"
+        size="sm"
+        _hover={{ bg: "teal.500" }}
+        _active={{ bg: "teal.600" }}
+      >
         添加更多翻译服务
       </Button>
 
