@@ -24,6 +24,7 @@ const TranslationInput = () => {
         status: "warning",
         duration: 3000,
         isClosable: true,
+        position: "top",
       });
       return;
     }
@@ -54,6 +55,7 @@ const TranslationInput = () => {
         status: "success",
         duration: 3000,
         isClosable: true,
+        position: "top",
       });
     } catch (error: any) {
       console.error(error);
@@ -63,6 +65,7 @@ const TranslationInput = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "top",
       });
     } finally {
       setLoading(false);
@@ -77,6 +80,7 @@ const TranslationInput = () => {
         status: "success",
         duration: 3000,
         isClosable: true,
+        position: "top",
       });
     }).catch(() => {
       toast({
@@ -85,6 +89,7 @@ const TranslationInput = () => {
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "top",
       });
     });
   };

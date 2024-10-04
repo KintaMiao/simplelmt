@@ -1,13 +1,18 @@
 "use client";
 
 import { ReactNode } from "react";
-import { ChakraProvider, extendTheme } from "@chakra-ui/react";
+import { ChakraProvider, extendTheme, useToast } from "@chakra-ui/react";
 import { TranslationProvider } from "../contexts/TranslationContext";
 
 const theme = extendTheme({
   config: {
     initialColorMode: "dark",
     useSystemColorMode: false,
+  },
+  toast: {
+    defaultOptions: {
+      position: "top",
+    },
   },
 });
 
