@@ -25,21 +25,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   try {
     let translatedText = "";
 
-    switch (service) {
-      case "google":
-        translatedText = await translateWithGoogle(text, sourceLang, targetLang);
-        break;
-      case "openai":
-        translatedText = await translateWithOpenAI(text, sourceLang, targetLang);
-        break;
-      case "tongyi":
-        translatedText = await translateWithTongyi(text, sourceLang, targetLang);
-        break;
-      case "deepl":
-        translatedText = await translateWithDeepL(text, sourceLang, targetLang);
-        break;
-      default:
-        throw new Error("未知的翻译服务");
+    if (service.startsWith("custom_")) {
+      const customAPI = customAPIs.find(api => api.id === service);
+      if (customAPI) {
+        translatedText = await translateWithCustomAPI(text, sourceLang, targetLang, customAPI);
+      } else {
+        throw new Error("未找到自定义API配置");
+      }
+    } else {
+      switch (service) {
+        case "google":
+          translatedText = await translateWithGoogle(text, sourceLang, targetLang);
+          break;
+        case "openai":
+          translatedText = await translateWithOpenAI(text, sourceLang, targetLang);
+          break;
+        case "tongyi":
+          translatedText = await translateWithTongyi(text, sourceLang, targetLang);
+          break;
+        case "deepl":
+          translatedText = await translateWithDeepL(text, sourceLang, targetLang);
+          break;
+        default:
+          throw new Error("未知的翻译服务");
+      }
     }
 
     res.status(200).json({ translatedText });
@@ -232,5 +241,49 @@ const translateWithDeepL = async (text: string, source: string, target: string):
   } catch (error: any) {
     console.error('DeepL翻译请求失败:', error.response?.data || error.message);
     throw new Error(`翻译失败: ${error.response?.data?.message || error.message}`);
+  }
+};
+
+// 渠道: 自定义API
+const translateWithCustomAPI = async (text: string, source: string, target: string, customAPI: any): Promise<string> => {
+  const data = {
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "user",
+        content: `请将以下文本从${source}翻译成${target}语言：${text}`,
+      },
+    ],
+  };
+
+  const config = {
+    method: 'post',
+    url: customAPI.endpoint,
+    headers: { 
+      'Accept': 'application/json', 
+      'Authorization': `Bearer ${customAPI.apiKey}`, 
+      'Content-Type': 'application/json'
+    },
+    data: data,
+  };
+
+  try {
+    const response = await axios(config);
+    
+    if (
+      response.data &&
+      response.data.choices &&
+      response.data.choices.length > 0 &&
+      response.data.choices[0].message &&
+      response.data.choices[0].message.content
+    ) {
+      const translatedText = response.data.choices[0].message.content.trim();
+      return translatedText;
+    } else {
+      throw new Error("无效的响应结构");
+    }
+  } catch (error: any) {
+    console.error('自定义API翻译请求失败:', error.response?.data || error.message);
+    throw new Error(`翻译失败: ${error.response?.data?.error?.message || error.message}`);
   }
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Heading, VStack, HStack, Button, IconButton, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Select, useDisclosure, Text } from "@chakra-ui/react";
+import { Box, Heading, VStack, HStack, Button, IconButton, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Select, useDisclosure, Text, Input, Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
 import { CloseIcon, AddIcon } from "@chakra-ui/icons";
 import { useState } from "react";
 import { useTranslationContext } from "../contexts/TranslationContext";
@@ -15,13 +15,15 @@ const allAvailableServices: Service[] = [
   { id: "openai", name: "OpenAI" },
   { id: "tongyi", name: "通义千问" },
   { id: "deepl", name: "DeepL" },
-  // 添加更多服务
 ];
 
 const TranslationServices = () => {
-  const { services, setServices } = useTranslationContext();
+  const { services, setServices, customAPIs, addCustomAPI, removeCustomAPI } = useTranslationContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedService, setSelectedService] = useState<string>("");
+  const [customAPIName, setCustomAPIName] = useState("");
+  const [customAPIEndpoint, setCustomAPIEndpoint] = useState("");
+  const [customAPIKey, setCustomAPIKey] = useState("");
 
   const removeService = (id: string) => {
     setServices(services.filter(service => service !== id));
@@ -33,6 +35,20 @@ const TranslationServices = () => {
     }
     onClose();
     setSelectedService("");
+  };
+
+  const handleAddCustomAPI = () => {
+    const id = `custom_${Date.now()}`;
+    addCustomAPI({
+      id,
+      name: customAPIName,
+      endpoint: customAPIEndpoint,
+      apiKey: customAPIKey
+    });
+    setCustomAPIName("");
+    setCustomAPIEndpoint("");
+    setCustomAPIKey("");
+    onClose();
   };
 
   return (
@@ -56,13 +72,26 @@ const TranslationServices = () => {
           )
         );
       })}
+      {customAPIs.map(api => (
+        <HStack key={api.id} justifyContent="space-between" bg="gray.700" p={3} borderRadius="md">
+          <Text>{api.name}</Text>
+          <IconButton
+            aria-label="Remove custom API"
+            icon={<CloseIcon />}
+            size="sm"
+            colorScheme="red"
+            variant="ghost"
+            onClick={() => removeCustomAPI(api.id)}
+          />
+        </HStack>
+      ))}
       <Button
         onClick={onOpen}
         colorScheme="brand"
         size="md"
         leftIcon={<AddIcon />}
       >
-        添加更多翻译服务
+        添加翻译服务
       </Button>
 
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -71,25 +100,71 @@ const TranslationServices = () => {
           <ModalHeader>添加翻译服务</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Select
-              placeholder="选择翻译服务"
-              value={selectedService}
-              onChange={(e) => setSelectedService(e.target.value)}
-              bg="gray.700"
-              borderColor="gray.600"
-            >
-              {allAvailableServices.map(service => (
-                <option key={service.id} value={service.id} disabled={services.includes(service.id)}>
-                  {service.name}
-                </option>
-              ))}
-            </Select>
+            <Tabs isFitted variant="enclosed">
+              <TabList mb="1em">
+                <Tab>预设服务</Tab>
+                <Tab>自定义API</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel>
+                  <Select
+                    placeholder="选择翻译服务"
+                    value={selectedService}
+                    onChange={(e) => setSelectedService(e.target.value)}
+                    bg="gray.700"
+                    borderColor="gray.600"
+                  >
+                    {allAvailableServices.map(service => (
+                      <option key={service.id} value={service.id} disabled={services.includes(service.id)}>
+                        {service.name}
+                      </option>
+                    ))}
+                  </Select>
+                </TabPanel>
+                <TabPanel>
+                  <VStack spacing={4}>
+                    <Input
+                      placeholder="API名称"
+                      value={customAPIName}
+                      onChange={(e) => setCustomAPIName(e.target.value)}
+                      bg="gray.700"
+                      borderColor="gray.600"
+                    />
+                    <Input
+                      placeholder="API端点"
+                      value={customAPIEndpoint}
+                      onChange={(e) => setCustomAPIEndpoint(e.target.value)}
+                      bg="gray.700"
+                      borderColor="gray.600"
+                    />
+                    <Input
+                      placeholder="API密钥"
+                      type="password"
+                      value={customAPIKey}
+                      onChange={(e) => setCustomAPIKey(e.target.value)}
+                      bg="gray.700"
+                      borderColor="gray.600"
+                    />
+                  </VStack>
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
           </ModalBody>
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={onClose}>
               取消
             </Button>
-            <Button colorScheme="brand" onClick={addService} isDisabled={!selectedService}>
+            <Button 
+              colorScheme="brand" 
+              onClick={() => {
+                if (selectedService) {
+                  addService();
+                } else {
+                  handleAddCustomAPI();
+                }
+              }}
+              isDisabled={!selectedService && (!customAPIName || !customAPIEndpoint || !customAPIKey)}
+            >
               添加
             </Button>
           </ModalFooter>
