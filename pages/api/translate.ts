@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return;
   }
 
-  const { text, sourceLang, targetLang, service } = req.body;
+  const { text, sourceLang, targetLang, service, customAPIs } = req.body;
 
   if (!text || !targetLang || !service) {
     res.status(400).json({ error: "Missing parameters" });
@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     let translatedText = "";
 
     if (service.startsWith("custom_")) {
-      const customAPI = customAPIs.find(api => api.id === service);
+      const customAPI = customAPIs.find((api: CustomAPI) => api.id === service);
       if (customAPI) {
         translatedText = await translateWithCustomAPI(text, sourceLang, targetLang, customAPI);
       } else {
@@ -106,7 +106,7 @@ const translateWithOpenAI = async (text: string, source: string, target: string)
   // 配置请求参数
   const config = {
     method: 'post',
-    url: 'https://api.openai.com/',
+    url: 'https://api.openai.com/v1/chat/completions',
     headers: { 
       'Accept': 'application/json', 
       'Authorization': `Bearer ${apiKey}`, 
@@ -116,7 +116,7 @@ const translateWithOpenAI = async (text: string, source: string, target: string)
   };
 
   try {
-    // 发送请求
+    // 发送��求
     const response = await axios(config);
     
     // 检查响应结构
@@ -247,7 +247,7 @@ const translateWithDeepL = async (text: string, source: string, target: string):
 // 渠道: 自定义API
 const translateWithCustomAPI = async (text: string, source: string, target: string, customAPI: any): Promise<string> => {
   const data = {
-    model: "gpt-4o-mini",
+    model: customAPI.model,
     messages: [
       {
         role: "user",
@@ -287,3 +287,8 @@ const translateWithCustomAPI = async (text: string, source: string, target: stri
     throw new Error(`翻译失败: ${error.response?.data?.error?.message || error.message}`);
   }
 };
+
+interface CustomAPI {
+  id: string;
+  // 添加其他必要的属性
+}

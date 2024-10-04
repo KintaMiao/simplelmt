@@ -5,6 +5,7 @@ interface CustomAPI {
   name: string;
   endpoint: string;
   apiKey: string;
+  model: string;
 }
 
 interface TranslationContextProps {
@@ -13,6 +14,7 @@ interface TranslationContextProps {
   customAPIs: CustomAPI[];
   addCustomAPI: (api: CustomAPI) => void;
   removeCustomAPI: (id: string) => void;
+  editCustomAPI: (id: string, updatedAPI: Partial<CustomAPI>) => void;
 }
 
 const TranslationContext = createContext<TranslationContextProps | undefined>(undefined);
@@ -35,8 +37,14 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
     setServices(services.filter(service => service !== id));
   };
 
+  const editCustomAPI = (id: string, updatedAPI: Partial<CustomAPI>) => {
+    setCustomAPIs(customAPIs.map(api => 
+      api.id === id ? { ...api, ...updatedAPI } : api
+    ));
+  };
+
   return (
-    <TranslationContext.Provider value={{ services, setServices, customAPIs, addCustomAPI, removeCustomAPI }}>
+    <TranslationContext.Provider value={{ services, setServices, customAPIs, addCustomAPI, removeCustomAPI, editCustomAPI }}>
       {children}
     </TranslationContext.Provider>
   );

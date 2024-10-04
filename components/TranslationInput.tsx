@@ -11,8 +11,8 @@ const TranslationInput = () => {
   const [text, setText] = useState<string>("");
   const [sourceLang, setSourceLang] = useState<string>("auto");
   const [targetLang, setTargetLang] = useState<string>("en");
-  const { services } = useTranslationContext();
-  const [translations, setTranslations] = useState<{ service: string; text: string }[]>([]);
+  const { services, customAPIs } = useTranslationContext();
+  const [translations, setTranslations] = useState<{ service: string; text: string; name: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const toast = useToast();
 
@@ -39,6 +39,7 @@ const TranslationInput = () => {
           sourceLang: sourceLang === "auto" ? "" : sourceLang,
           targetLang,
           service,
+          customAPIs, // 添加这一行
         })
       );
 
@@ -46,6 +47,7 @@ const TranslationInput = () => {
       const newTranslations = results.map((res, index) => ({
         service: services[index],
         text: res.data.translatedText,
+        name: getServiceName(services[index]),
       }));
       setTranslations(newTranslations);
 
@@ -76,7 +78,7 @@ const TranslationInput = () => {
     navigator.clipboard.writeText(text).then(() => {
       toast({
         title: "复制成功",
-        description: "翻译文本已复制到剪贴板。",
+        description: "翻译文本已���制到剪贴板。",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -100,8 +102,11 @@ const TranslationInput = () => {
       openai: "OpenAI",
       tongyi: "通义千问",
       deepl: "DeepL",
-      // 添加更多服务名称映射
     };
+    if (serviceId.startsWith("custom_")) {
+      const customAPI = customAPIs.find(api => api.id === serviceId);
+      return customAPI ? customAPI.name : serviceId;
+    }
     return serviceMap[serviceId] || serviceId;
   };
 
@@ -171,9 +176,9 @@ const TranslationInput = () => {
             boxShadow="md"
           >
             <Flex justify="space-between" align="center" mb={2}>
-              <Text fontWeight="bold" color="brand.200">{getServiceName(t.service)}</Text>
+              <Text fontWeight="bold" color="brand.200">{t.name}</Text>
               <IconButton
-                aria-label={`复制来自${getServiceName(t.service)}的翻译文本`}
+                aria-label={`复制来自${t.name}的翻译文本`}
                 icon={<CopyIcon />}
                 size="sm"
                 colorScheme="brand"
