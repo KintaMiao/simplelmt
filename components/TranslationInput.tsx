@@ -106,11 +106,15 @@ const TranslationInput = () => {
   };
 
   return (
-    <VStack align="stretch" spacing={4}>
-      {/* 语言选择 */}
+    <VStack align="stretch" spacing={6} bg="gray.800" p={6} borderRadius="lg" boxShadow="xl">
       <Grid templateColumns="repeat(2, 1fr)" gap={4}>
         <GridItem>
-          <Select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)} width="100%">
+          <Select
+            value={sourceLang}
+            onChange={(e) => setSourceLang(e.target.value)}
+            bg="gray.700"
+            borderColor="gray.600"
+          >
             <option value="auto">检测源语言</option>
             <option value="zh">中文</option>
             <option value="en">英语</option>
@@ -118,34 +122,37 @@ const TranslationInput = () => {
             <option value="fr">法语</option>
             <option value="ko">韩语</option>
             <option value="ru">俄语</option>
-            {/* 添加更多语言 */}
           </Select>
         </GridItem>
         <GridItem>
-          <Select value={targetLang} onChange={(e) => setTargetLang(e.target.value)} width="100%">
+          <Select
+            value={targetLang}
+            onChange={(e) => setTargetLang(e.target.value)}
+            bg="gray.700"
+            borderColor="gray.600"
+          >
             <option value="en">英语</option>
             <option value="zh">中文</option>
             <option value="ja">日语</option>
             <option value="fr">法语</option>
             <option value="ko">韩语</option>
             <option value="ru">俄语</option>
-            {/* 添加更多语言 */}
           </Select>
         </GridItem>
       </Grid>
 
-      {/* 文本输入框 */}
       <Textarea
-        placeholder="请输您需要翻译的文本"
+        placeholder="请输入您需要翻译的文本"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        height="300px"
+        height="200px"
         resize="vertical"
+        bg="gray.700"
+        borderColor="gray.600"
       />
 
-      {/* 翻译按钮 */}
       <Button
-        colorScheme="teal"
+        colorScheme="brand"
         onClick={handleTranslate}
         isDisabled={!text || loading}
         width="100%"
@@ -154,30 +161,30 @@ const TranslationInput = () => {
         {loading ? "翻译中..." : "翻译"}
       </Button>
 
-      {/* 翻译结果展示 */}
-      <Box mt={4}>
+      <VStack align="stretch" spacing={4}>
         {translations.map((t, index) => (
           <Box
             key={index}
-            mb={2}
             p={4}
             bg="gray.700"
             borderRadius="md"
             boxShadow="md"
           >
             <Flex justify="space-between" align="center" mb={2}>
-              <Text fontWeight="bold">{getServiceName(t.service)}</Text>
+              <Text fontWeight="bold" color="brand.200">{getServiceName(t.service)}</Text>
               <IconButton
                 aria-label={`复制来自${getServiceName(t.service)}的翻译文本`}
                 icon={<CopyIcon />}
                 size="sm"
+                colorScheme="brand"
+                variant="ghost"
                 onClick={() => handleCopy(t.text)}
               />
             </Flex>
             <Text>{t.text}</Text>
           </Box>
         ))}
-      </Box>
+      </VStack>
     </VStack>
   );
 };

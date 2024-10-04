@@ -25,3 +25,38 @@ body {
     text-wrap: balance;
   }
 }
+
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2D3748;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4A5568;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* 添加平滑滚动效果 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 为输入框添加焦点样式 */
+input:focus, textarea:focus, select:focus {
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.6);
+  outline: none;
+}
+
+/* 为按钮添加悬停效果 */
+button:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s;
+}

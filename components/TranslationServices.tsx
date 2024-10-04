@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Heading, VStack, HStack, Button, IconButton, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Select, useDisclosure, Text } from "@chakra-ui/react";
-import { CloseIcon } from "@chakra-ui/icons";
+import { CloseIcon, AddIcon } from "@chakra-ui/icons";
 import { useState } from "react";
 import { useTranslationContext } from "../contexts/TranslationContext";
 
@@ -36,18 +36,20 @@ const TranslationServices = () => {
   };
 
   return (
-    <VStack align="stretch" spacing={4}>
-      <Heading size="md">翻译服务</Heading>
+    <VStack align="stretch" spacing={4} bg="gray.800" p={6} borderRadius="lg" boxShadow="xl">
+      <Heading size="md" mb={2}>翻译服务</Heading>
       {services.map(serviceId => {
         const service = allAvailableServices.find(s => s.id === serviceId);
         return (
           service && (
-            <HStack key={service.id} justifyContent="space-between" bg="gray.700" p={2} borderRadius="md">
+            <HStack key={service.id} justifyContent="space-between" bg="gray.700" p={3} borderRadius="md">
               <Text>{service.name}</Text>
               <IconButton
                 aria-label="Remove service"
                 icon={<CloseIcon />}
                 size="sm"
+                colorScheme="red"
+                variant="ghost"
                 onClick={() => removeService(service.id)}
               />
             </HStack>
@@ -56,22 +58,26 @@ const TranslationServices = () => {
       })}
       <Button
         onClick={onOpen}
-        colorScheme="teal"
-        size="sm"
-        _hover={{ bg: "teal.500" }}
-        _active={{ bg: "teal.600" }}
+        colorScheme="brand"
+        size="md"
+        leftIcon={<AddIcon />}
       >
         添加更多翻译服务
       </Button>
 
-      {/* 添加服务的模态框 */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent bg="gray.800">
           <ModalHeader>添加翻译服务</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Select placeholder="选择翻译服务" value={selectedService} onChange={(e) => setSelectedService(e.target.value)}>
+            <Select
+              placeholder="选择翻译服务"
+              value={selectedService}
+              onChange={(e) => setSelectedService(e.target.value)}
+              bg="gray.700"
+              borderColor="gray.600"
+            >
               {allAvailableServices.map(service => (
                 <option key={service.id} value={service.id} disabled={services.includes(service.id)}>
                   {service.name}
@@ -83,7 +89,7 @@ const TranslationServices = () => {
             <Button variant="ghost" mr={3} onClick={onClose}>
               取消
             </Button>
-            <Button colorScheme="teal" onClick={addService} isDisabled={!selectedService}>
+            <Button colorScheme="brand" onClick={addService} isDisabled={!selectedService}>
               添加
             </Button>
           </ModalFooter>
