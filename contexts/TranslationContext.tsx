@@ -7,6 +7,7 @@ interface TranslationRecord {
   sourceLang: string;
   targetLang: string;
   service: string;
+  name?: string;
   translatedText: string;
   timestamp: string;
 }
