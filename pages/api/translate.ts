@@ -46,6 +46,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         case "deepl":
           translatedText = await translateWithDeepL(text, sourceLang, targetLang);
           break;
+        case "siliconflow":
+          translatedText = await translateWithSiliconFlow(text, sourceLang, targetLang);
+          break;
         default:
           throw new Error("未知的翻译服务");
       }
@@ -116,7 +119,7 @@ const translateWithOpenAI = async (text: string, source: string, target: string)
   };
 
   try {
-    // 发送��求
+    // 发送请求
     const response = await axios(config);
     
     // 检查响应结构
@@ -241,6 +244,62 @@ const translateWithDeepL = async (text: string, source: string, target: string):
   } catch (error: any) {
     console.error('DeepL翻译请求失败:', error.response?.data || error.message);
     throw new Error(`翻译失败: ${error.response?.data?.message || error.message}`);
+  }
+};
+
+// 渠道: 硅基流动
+const translateWithSiliconFlow = async (text: string, source: string, target: string): Promise<string> => {
+  // 从环境变量中获取 API 密钥
+  const apiKey = process.env.SILICONFLOW_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("硅基流动 API 密钥未配置");
+  }
+
+  // 构建请求数据
+  const data = {
+    model: "Qwen/Qwen2.5-32B-Instruct",
+    messages: [
+      {
+        role: "user",
+        content: `请将以下文本从${source}翻译成${target}语言：${text}`,
+      },
+    ],
+  };
+
+  // 配置请求参数
+  const config = {
+    method: 'post',
+    url: 'https://api.siliconflow.cn/v1/chat/completions',
+    headers: { 
+      'Accept': 'application/json', 
+      'Authorization': `Bearer ${apiKey}`, 
+      'Content-Type': 'application/json'
+    },
+    data: data,
+  };
+
+  try {
+    // 发送请求
+    const response = await axios(config);
+    
+    // 检查响应结构
+    if (
+      response.data &&
+      response.data.choices &&
+      response.data.choices.length > 0 &&
+      response.data.choices[0].message &&
+      response.data.choices[0].message.content
+    ) {
+      // 提取并返回翻译结果
+      const translatedText = response.data.choices[0].message.content.trim();
+      return translatedText;
+    } else {
+      throw new Error("无效的响应结构");
+    }
+  } catch (error: any) {
+    console.error('硅基流动翻译请求失败:', error.response?.data || error.message);
+    throw new Error(`翻译失败: ${error.response?.data?.error?.message || error.message}`);
   }
 };
 

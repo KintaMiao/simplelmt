@@ -39,7 +39,7 @@ const TranslationInput = () => {
           sourceLang: sourceLang === "auto" ? "" : sourceLang,
           targetLang,
           service,
-          customAPIs, // 添加这一行
+          customAPIs,
         })
       );
 
@@ -78,7 +78,7 @@ const TranslationInput = () => {
     navigator.clipboard.writeText(text).then(() => {
       toast({
         title: "复制成功",
-        description: "翻译文本已���制到剪贴板。",
+        description: "翻译文本已复制到剪贴板。",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -102,6 +102,7 @@ const TranslationInput = () => {
       openai: "OpenAI",
       tongyi: "通义千问",
       deepl: "DeepL",
+      siliconflow: "硅基流动",
     };
     if (serviceId.startsWith("custom_")) {
       const customAPI = customAPIs.find(api => api.id === serviceId);

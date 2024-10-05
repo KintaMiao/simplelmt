@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 interface CustomAPI {
   id: string;
@@ -15,6 +15,7 @@ interface TranslationContextProps {
   addCustomAPI: (api: CustomAPI) => void;
   removeCustomAPI: (id: string) => void;
   editCustomAPI: (id: string, updatedAPI: Partial<CustomAPI>) => void;
+  clearData: () => void;
 }
 
 const TranslationContext = createContext<TranslationContextProps | undefined>(undefined);
@@ -24,27 +25,56 @@ interface TranslationProviderProps {
 }
 
 export const TranslationProvider = ({ children }: TranslationProviderProps) => {
-  const [services, setServices] = useState<string[]>(["openai"]);
+  const [services, setServices] = useState<string[]>([]);
   const [customAPIs, setCustomAPIs] = useState<CustomAPI[]>([]);
 
+  useEffect(() => {
+    // 从 localStorage 加载数据
+    const savedServices = localStorage.getItem('services');
+    const savedCustomAPIs = localStorage.getItem('customAPIs');
+
+    if (savedServices) {
+      setServices(JSON.parse(savedServices));
+    } else {
+      setServices(["openai"]); // 默认值
+    }
+
+    if (savedCustomAPIs) {
+      setCustomAPIs(JSON.parse(savedCustomAPIs));
+    }
+  }, []);
+
+  useEffect(() => {
+    // 保存数据到 localStorage
+    localStorage.setItem('services', JSON.stringify(services));
+    localStorage.setItem('customAPIs', JSON.stringify(customAPIs));
+  }, [services, customAPIs]);
+
   const addCustomAPI = (api: CustomAPI) => {
-    setCustomAPIs([...customAPIs, api]);
-    setServices([...services, api.id]);
+    setCustomAPIs(prevAPIs => [...prevAPIs, api]);
+    setServices(prevServices => [...prevServices, api.id]);
   };
 
   const removeCustomAPI = (id: string) => {
-    setCustomAPIs(customAPIs.filter(api => api.id !== id));
-    setServices(services.filter(service => service !== id));
+    setCustomAPIs(prevAPIs => prevAPIs.filter(api => api.id !== id));
+    setServices(prevServices => prevServices.filter(service => service !== id));
   };
 
   const editCustomAPI = (id: string, updatedAPI: Partial<CustomAPI>) => {
-    setCustomAPIs(customAPIs.map(api => 
+    setCustomAPIs(prevAPIs => prevAPIs.map(api => 
       api.id === id ? { ...api, ...updatedAPI } : api
     ));
   };
 
+  const clearData = () => {
+    localStorage.removeItem('services');
+    localStorage.removeItem('customAPIs');
+    setServices(["openai"]);
+    setCustomAPIs([]);
+  };
+
   return (
-    <TranslationContext.Provider value={{ services, setServices, customAPIs, addCustomAPI, removeCustomAPI, editCustomAPI }}>
+    <TranslationContext.Provider value={{ services, setServices, customAPIs, addCustomAPI, removeCustomAPI, editCustomAPI, clearData }}>
       {children}
     </TranslationContext.Provider>
   );

@@ -23,10 +23,11 @@ const allAvailableServices: Service[] = [
   { id: "openai", name: "OpenAI" },
   { id: "tongyi", name: "通义千问" },
   { id: "deepl", name: "DeepL" },
+  { id: "siliconflow", name: "硅基流动" },
 ];
 
 const TranslationServices = () => {
-  const { services, setServices, customAPIs, addCustomAPI, removeCustomAPI, editCustomAPI } = useTranslationContext();
+  const { services, setServices, customAPIs, addCustomAPI, removeCustomAPI, editCustomAPI, clearData } = useTranslationContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedService, setSelectedService] = useState<string>("");
   const [customAPIName, setCustomAPIName] = useState("");
@@ -230,6 +231,18 @@ const TranslationServices = () => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+      <Button
+        onClick={() => {
+          if (window.confirm("确定要清除所有数据吗？这将删除所有选择的服务和自定义API。")) {
+            clearData();
+          }
+        }}
+        colorScheme="red"
+        size="md"
+        mt={4}
+      >
+        清除所有数据
+      </Button>
     </VStack>
   );
 };
