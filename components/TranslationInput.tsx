@@ -1,17 +1,19 @@
 "use client";
 
-import { Box, VStack, Textarea, Select, Button, Spinner, HStack, Grid, GridItem, Collapse, Flex, useToast, Text } from "@chakra-ui/react";
+import { Box, VStack, Textarea, Select, Button, Spinner, HStack, Grid, GridItem, Collapse, Flex, useToast, Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useTranslationContext } from "../contexts/TranslationContext";
 import { CopyIcon } from "@chakra-ui/icons";
 import { IconButton } from "@chakra-ui/react";
+import { v4 as uuidv4 } from 'uuid'; // 用于生成唯一ID
+import TranslationHistory from "./TranslationHistory";
 
 const TranslationInput = () => {
   const [text, setText] = useState<string>("");
   const [sourceLang, setSourceLang] = useState<string>("auto");
   const [targetLang, setTargetLang] = useState<string>("en");
-  const { services, customAPIs } = useTranslationContext();
+  const { services, customAPIs, addHistory } = useTranslationContext();
   const [translations, setTranslations] = useState<{ service: string; text: string; name: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const toast = useToast();
@@ -50,6 +52,19 @@ const TranslationInput = () => {
         name: getServiceName(services[index]),
       }));
       setTranslations(newTranslations);
+
+      // 添加到历史记录
+      newTranslations.forEach(t => {
+        addHistory({
+          id: uuidv4(),
+          inputText: text,
+          sourceLang,
+          targetLang,
+          service: t.service,
+          translatedText: t.text,
+          timestamp: new Date().toISOString(),
+        });
+      });
 
       toast({
         title: "翻译成功",
@@ -191,6 +206,9 @@ const TranslationInput = () => {
           </Box>
         ))}
       </VStack>
+
+      {/* 集成历史记录组件 */}
+      <TranslationHistory />
     </VStack>
   );
 };
