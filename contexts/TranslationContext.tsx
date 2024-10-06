@@ -32,6 +32,8 @@ interface TranslationContextProps {
   addHistory: (record: TranslationRecord) => void;
   clearHistory: () => void;
   exportHistory: () => void;
+  exportConfig: () => void;
+  importConfig: (config: string) => void;
 }
 
 const TranslationContext = createContext<TranslationContextProps | undefined>(undefined);
@@ -128,8 +130,35 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
     }
   };
 
+  const exportConfig = () => {
+    const config = {
+      services,
+      customAPIs,
+      history
+    };
+    const configString = JSON.stringify(config);
+    const blob = new Blob([configString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'simplelmt_config.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importConfig = (configString: string) => {
+    try {
+      const config = JSON.parse(configString);
+      if (config.services) setServices(config.services);
+      if (config.customAPIs) setCustomAPIs(config.customAPIs);
+      if (config.history) setHistory(config.history);
+    } catch (error) {
+      console.error('配置导入失败:', error);
+    }
+  };
+
   return (
-    <TranslationContext.Provider value={{ services, setServices, customAPIs, addCustomAPI, removeCustomAPI, editCustomAPI, clearData, history, addHistory, clearHistory, exportHistory }}>
+    <TranslationContext.Provider value={{ services, setServices, customAPIs, addCustomAPI, removeCustomAPI, editCustomAPI, clearData, history, addHistory, clearHistory, exportHistory, exportConfig, importConfig }}>
       {children}
     </TranslationContext.Provider>
   );

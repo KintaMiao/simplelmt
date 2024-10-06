@@ -27,7 +27,7 @@ const allAvailableServices: Service[] = [
 ];
 
 const TranslationServices = () => {
-  const { services, setServices, customAPIs, addCustomAPI, removeCustomAPI, editCustomAPI, clearData } = useTranslationContext();
+  const { services, setServices, customAPIs, addCustomAPI, removeCustomAPI, editCustomAPI, clearData, exportConfig, importConfig } = useTranslationContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedService, setSelectedService] = useState<string>("");
   const [customAPIName, setCustomAPIName] = useState("");
@@ -242,6 +242,38 @@ const TranslationServices = () => {
         mt={4}
       >
         清除所有数据
+      </Button>
+      <Button
+        onClick={exportConfig}
+        colorScheme="blue"
+        size="md"
+        mt={4}
+      >
+        导出配置
+      </Button>
+      <Button
+        onClick={() => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = '.json';
+          input.onchange = (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const content = e.target?.result as string;
+                importConfig(content);
+              };
+              reader.readAsText(file);
+            }
+          };
+          input.click();
+        }}
+        colorScheme="green"
+        size="md"
+        mt={4}
+      >
+        导入配置
       </Button>
     </VStack>
   );
