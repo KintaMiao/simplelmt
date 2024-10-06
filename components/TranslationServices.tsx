@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Heading, VStack, HStack, Button, IconButton, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Select, useDisclosure, Text, Input, Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
+import { Box, Heading, VStack, HStack, Button, IconButton, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Select, useDisclosure, Text, Input, Tabs, TabList, TabPanels, Tab, TabPanel, Alert, AlertIcon } from "@chakra-ui/react";
 import { CloseIcon, AddIcon, EditIcon } from "@chakra-ui/icons";
 import { useState } from "react";
 import { useTranslationContext } from "../contexts/TranslationContext";
@@ -24,6 +24,7 @@ const allAvailableServices: Service[] = [
   { id: "tongyi", name: "通义千问" },
   { id: "deepl", name: "DeepL" },
   { id: "siliconflow", name: "硅基流动" },
+  { id: "deepseek", name: "DeepSeek" },
 ];
 
 const TranslationServices = () => {
@@ -199,6 +200,10 @@ const TranslationServices = () => {
                   </Select>
                 </TabPanel>
                 <TabPanel>
+                  <Alert status="warning" mb={4}>
+                    <AlertIcon />
+                    注意：自定义API仅支持OpenAI兼容接口
+                  </Alert>
                   <VStack spacing={4}>
                     <Input
                       placeholder="渠道名称"

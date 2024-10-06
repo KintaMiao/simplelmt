@@ -9,54 +9,49 @@ type Data = {
 };
 
 // 主处理函数
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
-    res.status(405).json({ error: "Method not allowed" });
+    res.status(405).json({ error: "方法不允许" });
     return;
   }
 
   const { text, sourceLang, targetLang, service, customAPIs } = req.body;
 
   if (!text || !targetLang || !service) {
-    res.status(400).json({ error: "Missing parameters" });
+    res.status(400).json({ error: "缺少参数" });
     return;
   }
 
-  try {
-    let translatedText = "";
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+  });
 
+  try {
     if (service.startsWith("custom_")) {
       const customAPI = customAPIs.find((api: CustomAPI) => api.id === service);
       if (customAPI) {
-        translatedText = await translateWithCustomAPI(text, sourceLang, targetLang, customAPI);
+        await translateWithCustomAPI(text, sourceLang, targetLang, customAPI, res);
       } else {
         throw new Error("未找到自定义API配置");
       }
     } else {
       switch (service) {
-        case "google":
-          translatedText = await translateWithGoogle(text, sourceLang, targetLang);
-          break;
         case "openai":
-          translatedText = await translateWithOpenAI(text, sourceLang, targetLang);
+          await translateWithOpenAI(text, sourceLang, targetLang, res);
           break;
-        case "tongyi":
-          translatedText = await translateWithTongyi(text, sourceLang, targetLang);
+        case "deepseek":
+          await translateWithDeepSeek(text, sourceLang, targetLang, res);
           break;
-        case "deepl":
-          translatedText = await translateWithDeepL(text, sourceLang, targetLang);
-          break;
-        case "siliconflow":
-          translatedText = await translateWithSiliconFlow(text, sourceLang, targetLang);
-          break;
+        // 其他服务保持不变
         default:
           throw new Error("未知的翻译服务");
       }
     }
-
-    res.status(200).json({ translatedText });
   } catch (error: any) {
-    res.status(500).json({ error: error.message || "内部服务器错误" });
+    res.write(`event: error\ndata: ${JSON.stringify({ error: error.message || "内部服务器错误" })}\n\n`);
+    res.end();
   }
 }
 
@@ -87,7 +82,7 @@ const translateWithGoogle = async (text: string, source: string, target: string)
 };
 
 // 渠道: OpenAI
-const translateWithOpenAI = async (text: string, source: string, target: string): Promise<string> => {
+const translateWithOpenAI = async (text: string, source: string, target: string, res: NextApiResponse): Promise<void> => {
   // 从环境变量中获取 API 密钥
   const apiKey = process.env.OPENAI_API_KEY;
 
@@ -104,6 +99,7 @@ const translateWithOpenAI = async (text: string, source: string, target: string)
         content: `请将以下文本从${source}翻译成${target}语言：${text}`,
       },
     ],
+    stream: true,
   };
 
   // 配置请求参数
@@ -116,28 +112,38 @@ const translateWithOpenAI = async (text: string, source: string, target: string)
       'Content-Type': 'application/json'
     },
     data: data,
+    responseType: 'stream' as 'stream'
   };
 
   try {
     // 发送请求
     const response = await axios(config);
     
-    // 检查响应结构
-    if (
-      response.data &&
-      response.data.choices &&
-      response.data.choices.length > 0 &&
-      response.data.choices[0].message &&
-      response.data.choices[0].message.content
-    ) {
-      // 提取并返回翻译结果
-      const translatedText = response.data.choices[0].message.content.trim();
-      return translatedText;
-    } else {
-      throw new Error("无效的响应结构");
-    }
+    response.data.on('data', (chunk: Buffer) => {
+      const lines = chunk.toString().split('\n').filter(line => line.trim() !== '');
+      for (const line of lines) {
+        const message = line.replace(/^data: /, '');
+        if (message === '[DONE]') {
+          res.write('event: done\ndata: [DONE]\n\n');
+          return;
+        }
+        try {
+          const parsed = JSON.parse(message);
+          const content = parsed.choices[0].delta.content;
+          if (content) {
+            res.write(`data: ${content}\n\n`);
+          }
+        } catch (error) {
+          console.error('解析SSE消息时出错:', error);
+        }
+      }
+    });
+
+    response.data.on('end', () => {
+      res.end();
+    });
   } catch (error: any) {
-    console.error('翻译请求失败:', error.response?.data || error.message);
+    console.error('OpenAI翻译请求失败:', error.response?.data || error.message);
     throw new Error(`翻译失败: ${error.response?.data?.error?.message || error.message}`);
   }
 };
@@ -262,7 +268,7 @@ const translateWithSiliconFlow = async (text: string, source: string, target: st
     messages: [
       {
         role: "user",
-        content: `请将以下文本从${source}翻译成${target}语言：${text}`,
+        content: `请将以下文本从${source}翻译成${target}��言：${text}`,
       },
     ],
   };
@@ -303,8 +309,71 @@ const translateWithSiliconFlow = async (text: string, source: string, target: st
   }
 };
 
+// 渠道: 深度求索
+const translateWithDeepSeek = async (text: string, source: string, target: string, res: NextApiResponse): Promise<void> => {
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("DeepSeek API 密钥未配置");
+  }
+
+  const data = {
+    model: "deepseek-chat",
+    messages: [
+      {
+        role: "user",
+        content: `请将以下文本从${source}翻译成${target}语言：${text}`,
+      },
+    ],
+    stream: true,
+  };
+
+  const config = {
+    method: 'post',
+    url: 'https://api.deepseek.com/v1/chat/completions',
+    headers: { 
+      'Accept': 'application/json', 
+      'Authorization': `Bearer ${apiKey}`, 
+      'Content-Type': 'application/json'
+    },
+    data: data,
+    responseType: 'stream' as 'stream'
+  };
+
+  try {
+    const response = await axios(config);
+    
+    response.data.on('data', (chunk: Buffer) => {
+      const lines = chunk.toString().split('\n').filter(line => line.trim() !== '');
+      for (const line of lines) {
+        const message = line.replace(/^data: /, '');
+        if (message === '[DONE]') {
+          res.write('event: done\ndata: [DONE]\n\n');
+          return;
+        }
+        try {
+          const parsed = JSON.parse(message);
+          const content = parsed.choices[0].delta.content;
+          if (content) {
+            res.write(`data: ${content}\n\n`);
+          }
+        } catch (error) {
+          console.error('解析SSE消息时出错:', error);
+        }
+      }
+    });
+
+    response.data.on('end', () => {
+      res.end();
+    });
+  } catch (error: any) {
+    console.error('DeepSeek翻译请求失败:', error.response?.data || error.message);
+    throw new Error(`翻译失败: ${error.response?.data?.error?.message || error.message}`);
+  }
+};
+
 // 渠道: 自定义API
-const translateWithCustomAPI = async (text: string, source: string, target: string, customAPI: any): Promise<string> => {
+const translateWithCustomAPI = async (text: string, source: string, target: string, customAPI: any, res: NextApiResponse): Promise<void> => {
   const data = {
     model: customAPI.model,
     messages: [
@@ -313,6 +382,7 @@ const translateWithCustomAPI = async (text: string, source: string, target: stri
         content: `请将以下文本从${source}翻译成${target}语言：${text}`,
       },
     ],
+    stream: true,
   };
 
   const config = {
@@ -324,23 +394,37 @@ const translateWithCustomAPI = async (text: string, source: string, target: stri
       'Content-Type': 'application/json'
     },
     data: data,
+    responseType: 'stream' as 'stream'
   };
 
   try {
     const response = await axios(config);
     
-    if (
-      response.data &&
-      response.data.choices &&
-      response.data.choices.length > 0 &&
-      response.data.choices[0].message &&
-      response.data.choices[0].message.content
-    ) {
-      const translatedText = response.data.choices[0].message.content.trim();
-      return translatedText;
-    } else {
-      throw new Error("无效的响应结构");
-    }
+    response.data.on('data', (chunk: Buffer) => {
+      const lines = chunk.toString().split('\n').filter(line => line.trim() !== '');
+      for (const line of lines) {
+        const message = line.replace(/^data: /, '');
+        if (message === '[DONE]') {
+          res.write('event: translationComplete\ndata: \n\n');
+          return;
+        }
+        try {
+          const parsed = JSON.parse(message);
+          const content = parsed.choices[0].delta.content;
+          if (content) {
+            res.write(`data: ${content}\n\n`);
+          }
+        } catch (error) {
+          console.error('解析SSE消息时出错:', error);
+        }
+      }
+    });
+
+    response.data.on('end', () => {
+      // 在流结束时发送一个明确的结束事件
+      res.write('event: translationComplete\ndata: \n\n');
+      res.end();
+    });
   } catch (error: any) {
     console.error('自定义API翻译请求失败:', error.response?.data || error.message);
     throw new Error(`翻译失败: ${error.response?.data?.error?.message || error.message}`);

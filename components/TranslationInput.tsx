@@ -34,38 +34,67 @@ const TranslationInput = () => {
     setLoading(true);
     setTranslations([]);
 
-    try {
-      const promises = services.map(service =>
-        axios.post("/api/translate", {
+    const translateWithService = async (service: string) => {
+      const response = await fetch("/api/translate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           text,
           sourceLang: sourceLang === "auto" ? "" : sourceLang,
           targetLang,
           service,
           customAPIs,
-        })
-      );
-
-      const results = await Promise.all(promises);
-      const newTranslations = results.map((res, index) => ({
-        service: services[index],
-        text: res.data.translatedText,
-        name: getServiceName(services[index]),
-      }));
-      setTranslations(newTranslations);
-
-      // 添加到历史记录
-      newTranslations.forEach(t => {
-        addHistory({
-          id: uuidv4(),
-          inputText: text,
-          sourceLang,
-          targetLang,
-          service: t.service,
-          translatedText: t.text,
-          timestamp: new Date().toISOString(),
-        });
+        }),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP错误! 状态: ${response.status}`);
+      }
+
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let translatedText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(5);
+            if (data === "[DONE]") {
+              break;
+            }
+            translatedText += data;
+            setTranslations(prev => {
+              const index = prev.findIndex(t => t.service === service);
+              if (index !== -1) {
+                const newTranslations = [...prev];
+                newTranslations[index] = { ...newTranslations[index], text: translatedText.trim() };
+                return newTranslations;
+              }
+              return [...prev, { service, text: translatedText.trim(), name: getServiceName(service) }];
+            });
+          }
+        }
+      }
+
+      addHistory({
+        id: uuidv4(),
+        inputText: text,
+        sourceLang,
+        targetLang,
+        service,
+        translatedText,
+        timestamp: new Date().toISOString(),
+      });
+    };
+
+    try {
+      await Promise.all(services.map(translateWithService));
       toast({
         title: "翻译成功",
         description: "您的文本已成功翻译。",
@@ -78,7 +107,7 @@ const TranslationInput = () => {
       console.error(error);
       toast({
         title: "翻译失败",
-        description: error.response?.data?.error || "翻译失败，请稍后重试。",
+        description: error.message || "翻译失败，请稍后重试。",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -118,6 +147,7 @@ const TranslationInput = () => {
       tongyi: "通义千问",
       deepl: "DeepL",
       siliconflow: "硅基流动",
+      deepseek: "深度求索",
     };
     if (serviceId.startsWith("custom_")) {
       const customAPI = customAPIs.find(api => api.id === serviceId);
