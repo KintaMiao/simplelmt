@@ -12,7 +12,7 @@ interface TranslationRecord {
   timestamp: string;
 }
 
-interface CustomAPI {
+export interface CustomAPI {
   id: string;
   name: string;
   endpoint: string;
@@ -31,6 +31,7 @@ interface TranslationContextProps {
   history: TranslationRecord[];
   addHistory: (record: TranslationRecord) => void;
   clearHistory: () => void;
+  exportHistory: () => void;
 }
 
 const TranslationContext = createContext<TranslationContextProps | undefined>(undefined);
@@ -106,8 +107,29 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
     localStorage.removeItem('history');
   };
 
+  const exportHistory = () => {
+    const csvContent = [
+      "ID,输入文本,源语言,目标语言,服务,翻译结果,时间戳",
+      ...history.map(record => 
+        `${record.id},"${record.inputText}",${record.sourceLang},${record.targetLang},${record.service},"${record.translatedText}",${record.timestamp}`
+      )
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", "translation_history.csv");
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   return (
-    <TranslationContext.Provider value={{ services, setServices, customAPIs, addCustomAPI, removeCustomAPI, editCustomAPI, clearData, history, addHistory, clearHistory }}>
+    <TranslationContext.Provider value={{ services, setServices, customAPIs, addCustomAPI, removeCustomAPI, editCustomAPI, clearData, history, addHistory, clearHistory, exportHistory }}>
       {children}
     </TranslationContext.Provider>
   );
