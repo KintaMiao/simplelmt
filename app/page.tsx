@@ -21,20 +21,20 @@ const Home = () => {
         </Flex>
       </Box>
 
-      <Container maxW="container.xl" py={8}>
-        <VStack spacing={8}>
-          <Heading as="h1" size="2xl" textAlign="center" mb={4}>
+      <Container maxW="container.xl" py={12}>
+        <VStack spacing={12}>
+          <Heading as="h1" size="2xl" textAlign="center" mb={8}>
             SimpleLMT
           </Heading>
           <Flex
-            direction={{ base: "column", md: "row" }}
+            direction={{ base: "column", lg: "row" }}
             width="100%"
-            gap={8}
+            gap={12}
           >
-            <Box flex="3" mr={{ md: 4 }} mb={{ base: 4, md: 0 }}>
+            <Box flex={{ base: "1", lg: "7" }} width="100%">
               <TranslationInput />
             </Box>
-            <Box flex="1">
+            <Box flex={{ base: "1", lg: "3" }} width="100%">
               <TranslationServices />
             </Box>
           </Flex>

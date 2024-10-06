@@ -57,6 +57,26 @@ input:focus, textarea:focus, select:focus {
 
 /* 为按钮添加悬停效果 */
 button:hover {
-  transform: translateY(-1px);
-  transition: transform 0.2s;
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+/* 添加发光效果 */
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.6);
+}
+
+/* 添加页面过渡动画 */
+.page-transition {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

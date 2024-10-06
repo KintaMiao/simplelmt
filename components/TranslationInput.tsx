@@ -127,14 +127,17 @@ const TranslationInput = () => {
   };
 
   return (
-    <VStack align="stretch" spacing={6} bg="gray.800" p={6} borderRadius="lg" boxShadow="xl">
-      <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+    <VStack align="stretch" spacing={8} bg="gray.800" p={8} borderRadius="lg" boxShadow="xl">
+      <Grid templateColumns="repeat(2, 1fr)" gap={6} width="100%">
         <GridItem>
           <Select
             value={sourceLang}
             onChange={(e) => setSourceLang(e.target.value)}
             bg="gray.700"
             borderColor="gray.600"
+            transition="all 0.3s ease"
+            _hover={{ borderColor: "brand.500" }}
+            _focus={{ borderColor: "brand.500", boxShadow: "0 0 0 1px var(--chakra-colors-brand-500)" }}
           >
             <option value="auto">检测源语言</option>
             <option value="zh">中文</option>
@@ -151,6 +154,9 @@ const TranslationInput = () => {
             onChange={(e) => setTargetLang(e.target.value)}
             bg="gray.700"
             borderColor="gray.600"
+            transition="all 0.3s ease"
+            _hover={{ borderColor: "brand.500" }}
+            _focus={{ borderColor: "brand.500", boxShadow: "0 0 0 1px var(--chakra-colors-brand-500)" }}
           >
             <option value="en">英语</option>
             <option value="zh">中文</option>
@@ -166,10 +172,11 @@ const TranslationInput = () => {
         placeholder="请输入您需要翻译的文本"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        height="200px"
+        height="250px"
         resize="vertical"
         bg="gray.700"
         borderColor="gray.600"
+        p={4}
       />
 
       <Button
@@ -178,6 +185,9 @@ const TranslationInput = () => {
         isDisabled={!text || loading}
         width="100%"
         leftIcon={loading ? <Spinner size="sm" /> : undefined}
+        _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
+        _active={{ transform: "translateY(1px)" }}
+        transition="all 0.3s ease"
       >
         {loading ? "翻译中..." : "翻译"}
       </Button>

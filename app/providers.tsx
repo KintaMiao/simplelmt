@@ -31,6 +31,45 @@ const theme = extendTheme({
       900: "#0D47A1",
     },
   },
+  components: {
+    Button: {
+      baseStyle: {
+        fontWeight: "bold",
+        borderRadius: "md",
+        transition: "all 0.3s ease",
+      },
+      variants: {
+        solid: (props: any) => ({
+          bg: `${props.colorScheme}.500`,
+          color: "white",
+          _hover: {
+            bg: `${props.colorScheme}.600`,
+            transform: "translateY(-2px)",
+            boxShadow: "lg",
+          },
+          _active: {
+            bg: `${props.colorScheme}.700`,
+            transform: "translateY(1px)",
+          },
+          _focus: {
+            boxShadow: `0 0 0 3px ${props.colorScheme}.300`,
+          },
+        }),
+      },
+    },
+    Input: {
+      baseStyle: {
+        field: {
+          borderRadius: "md",
+          transition: "all 0.3s ease",
+          _focus: {
+            boxShadow: "0 0 0 3px rgba(66, 153, 225, 0.6)",
+            borderColor: "brand.500",
+          },
+        },
+      },
+    },
+  },
   toast: {
     defaultOptions: {
       position: "top",

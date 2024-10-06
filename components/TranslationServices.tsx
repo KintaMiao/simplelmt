@@ -91,54 +91,82 @@ const TranslationServices = () => {
   };
 
   return (
-    <VStack align="stretch" spacing={4} bg="gray.800" p={6} borderRadius="lg" boxShadow="xl">
+    <VStack align="stretch" spacing={4} bg="gray.800" p={6} borderRadius="lg" boxShadow="xl" width="100%">
       <Heading size="md" mb={2}>翻译服务</Heading>
-      {services.map(serviceId => {
-        const service = allAvailableServices.find(s => s.id === serviceId);
-        return (
-          service && (
-            <HStack key={service.id} justifyContent="space-between" bg="gray.700" p={3} borderRadius="md">
-              <Text>{service.name}</Text>
+      <VStack align="stretch" spacing={3}>
+        {services.map(serviceId => {
+          const service = allAvailableServices.find(s => s.id === serviceId);
+          return (
+            service && (
+              <HStack 
+                key={service.id} 
+                justifyContent="space-between" 
+                bg="gray.700" 
+                p={3} 
+                borderRadius="md"
+                transition="all 0.3s ease"
+                _hover={{ bg: "gray.600" }}
+              >
+                <Text>{service.name}</Text>
+                <IconButton
+                  aria-label="Remove service"
+                  icon={<CloseIcon />}
+                  size="sm"
+                  colorScheme="red"
+                  variant="ghost"
+                  onClick={() => removeService(service.id)}
+                  transition="all 0.3s ease"
+                  _hover={{ bg: "red.600" }}
+                />
+              </HStack>
+            )
+          );
+        })}
+        {customAPIs.map(api => (
+          <HStack 
+            key={api.id} 
+            justifyContent="space-between" 
+            bg="gray.700" 
+            p={3} 
+            borderRadius="md"
+            transition="all 0.3s ease"
+            _hover={{ bg: "gray.600" }}
+          >
+            <Text>{api.name}</Text>
+            <HStack>
               <IconButton
-                aria-label="Remove service"
+                aria-label="Edit custom API"
+                icon={<EditIcon />}
+                size="sm"
+                colorScheme="blue"
+                variant="ghost"
+                onClick={() => handleEditCustomAPI(api)}
+                transition="all 0.3s ease"
+                _hover={{ bg: "blue.600" }}
+              />
+              <IconButton
+                aria-label="Remove custom API"
                 icon={<CloseIcon />}
                 size="sm"
                 colorScheme="red"
                 variant="ghost"
-                onClick={() => removeService(service.id)}
+                onClick={() => removeCustomAPI(api.id)}
+                transition="all 0.3s ease"
+                _hover={{ bg: "red.600" }}
               />
             </HStack>
-          )
-        );
-      })}
-      {customAPIs.map(api => (
-        <HStack key={api.id} justifyContent="space-between" bg="gray.700" p={3} borderRadius="md">
-          <Text>{api.name}</Text>
-          <HStack>
-            <IconButton
-              aria-label="Edit custom API"
-              icon={<EditIcon />}
-              size="sm"
-              colorScheme="blue"
-              variant="ghost"
-              onClick={() => handleEditCustomAPI(api)}
-            />
-            <IconButton
-              aria-label="Remove custom API"
-              icon={<CloseIcon />}
-              size="sm"
-              colorScheme="red"
-              variant="ghost"
-              onClick={() => removeCustomAPI(api.id)}
-            />
           </HStack>
-        </HStack>
-      ))}
+        ))}
+      </VStack>
       <Button
         onClick={onOpen}
         colorScheme="brand"
         size="md"
         leftIcon={<AddIcon />}
+        mt={4}
+        transition="all 0.3s ease"
+        _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
+        _active={{ transform: "translateY(1px)" }}
       >
         添加翻译服务
       </Button>
