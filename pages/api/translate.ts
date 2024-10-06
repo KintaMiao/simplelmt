@@ -112,7 +112,7 @@ const translateWithOpenAI = async (text: string, source: string, target: string,
       'Content-Type': 'application/json'
     },
     data: data,
-    responseType: 'stream' as 'stream'
+    responseType: 'stream' as const
   };
 
   try {
@@ -268,7 +268,7 @@ const translateWithSiliconFlow = async (text: string, source: string, target: st
     messages: [
       {
         role: "user",
-        content: `请将以下文本从${source}翻译成${target}��言：${text}`,
+        content: `请将以下文本从${source}翻译成${target}言：${text}`,
       },
     ],
   };
@@ -337,7 +337,7 @@ const translateWithDeepSeek = async (text: string, source: string, target: strin
       'Content-Type': 'application/json'
     },
     data: data,
-    responseType: 'stream' as 'stream'
+    responseType: 'stream' as const
   };
 
   try {
@@ -394,7 +394,7 @@ const translateWithCustomAPI = async (text: string, source: string, target: stri
       'Content-Type': 'application/json'
     },
     data: data,
-    responseType: 'stream' as 'stream'
+    responseType: 'stream' as const
   };
 
   try {
