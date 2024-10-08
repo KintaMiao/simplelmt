@@ -68,7 +68,7 @@ const TranslationInput = () => {
             if (data === "[DONE]") {
               break;
             }
-            translatedText += data;
+            translatedText += data.trim(); // 去除每个数据块的多余空格
             setTranslations(prev => {
               const index = prev.findIndex(t => t.service === service);
               if (index !== -1) {
