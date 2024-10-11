@@ -2,7 +2,7 @@
 
 ## 项目简介
 
-SimpleLMT 是一个使用多个大语言模型的翻译工具，支持多种翻译服务，包括谷歌翻译、OpenAI、通义千问和 DeepL。
+SimpleLMT 是一个使用多个大语言模型的翻译工具，支持多种翻译服务，包括谷歌翻译、OpenAI、通义千问、DeepL和深度求索。
 
 ## 功能特性
 
@@ -89,6 +89,7 @@ GOOGLE_CLOUD_KEYFILE=path_to_your_google_cloud_keyfile.json
 TONGYI_API_KEY=your_tongyi_api_key
 DEEPL_API_KEY=your_deepl_api_key
 SILICONFLOW_API_KEY=your_siliconflow_api_key
+DEEPSEEK_API_KEY=your_deepseek_api_key
 ```
 
 ## 说明

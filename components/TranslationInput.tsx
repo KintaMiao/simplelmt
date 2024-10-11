@@ -118,6 +118,7 @@ const TranslationInput = () => {
       tongyi: "通义千问",
       deepl: "DeepL",
       siliconflow: "硅基流动",
+      deepseek: "深度求索",
     };
     if (serviceId.startsWith("custom_")) {
       const customAPI = customAPIs.find(api => api.id === serviceId);

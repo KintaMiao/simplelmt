@@ -49,6 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         case "siliconflow":
           translatedText = await translateWithSiliconFlow(text, sourceLang, targetLang);
           break;
+        case "deepseek":
+          translatedText = await translateWithDeepSeek(text, sourceLang, targetLang);
+          break;
         default:
           throw new Error("未知的翻译服务");
       }
@@ -343,6 +346,56 @@ const translateWithCustomAPI = async (text: string, source: string, target: stri
     }
   } catch (error: any) {
     console.error('自定义API翻译请求失败:', error.response?.data || error.message);
+    throw new Error(`翻译失败: ${error.response?.data?.error?.message || error.message}`);
+  }
+};
+
+// 渠道: 深度求索
+const translateWithDeepSeek = async (text: string, source: string, target: string): Promise<string> => {
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("DeepSeek API 密钥未配置");
+  }
+
+  const data = {
+    model: "deepseek-chat",
+    messages: [
+      {
+        role: "user",
+        content: `请将以下文本从${source}翻译成${target}语言：${text}`,
+      },
+    ],
+  };
+
+  const config = {
+    method: 'post',
+    url: 'https://api.deepseek.com/v1/chat/completions',
+    headers: { 
+      'Accept': 'application/json', 
+      'Authorization': `Bearer ${apiKey}`, 
+      'Content-Type': 'application/json'
+    },
+    data: data,
+  };
+
+  try {
+    const response = await axios(config);
+    
+    if (
+      response.data &&
+      response.data.choices &&
+      response.data.choices.length > 0 &&
+      response.data.choices[0].message &&
+      response.data.choices[0].message.content
+    ) {
+      const translatedText = response.data.choices[0].message.content.trim();
+      return translatedText;
+    } else {
+      throw new Error("无效的响应结构");
+    }
+  } catch (error: any) {
+    console.error('DeepSeek翻译请求失败:', error.response?.data || error.message);
     throw new Error(`翻译失败: ${error.response?.data?.error?.message || error.message}`);
   }
 };
