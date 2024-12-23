@@ -308,6 +308,16 @@ const translateWithSiliconFlow = async (text: string, source: string, target: st
 
 // 渠道: 自定义API
 const translateWithCustomAPI = async (text: string, source: string, target: string, customAPI: any): Promise<string> => {
+  const allowedEndpoints = [
+    "https://api.example1.com/translate",
+    "https://api.example2.com/translate"
+    // Add other allowed endpoints here
+  ];
+
+  if (!allowedEndpoints.includes(customAPI.endpoint)) {
+    throw new Error("未授权的API端点");
+  }
+
   const data = {
     model: customAPI.model,
     messages: [
